@@ -309,7 +309,10 @@
             maTag.textContent = data.technicals.ma_trend;
             maTag.className = `metric-tag tag-${data.technicals.ma_trend}`;
 
-            document.getElementById('analysisText').textContent = data.analysis;
+            document.getElementById('analysisText').innerHTML = data.analysis
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
             document.getElementById('results').style.display = 'block';
 
         } catch (err) {
