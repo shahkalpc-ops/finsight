@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            padding: 24px 40px;
+            border-bottom: 1px solid #1e2d4a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3b82f6;
+            letter-spacing: -0.5px;
+        }
+
+        .tagline {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .main {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 24px;
+        }
+
+        .search-section {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .search-section h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-section p {
+            color: #64748b;
+            margin-bottom: 32px;
+            font-size: 15px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 14px 20px;
+            background: #111827;
+            border: 1px solid #1e2d4a;
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: #3b82f6;
+        }
+
+        .search-bar input::placeholder {
+            letter-spacing: 1px;
+            text-transform: none;
+            color: #374151;
+        }
+
+        .search-bar button {
+            padding: 14px 28px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-bar button:hover { background: #2563eb; }
+        .search-bar button:disabled { background: #1e3a5f; cursor: not-allowed; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            display: none;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #1e2d4a;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .results { display: none; }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding: 24px;
+            background: #111827;
+            border: 1px solid #1e2d4a;
+            border-radius: 12px;
+        }
+
+        .stock-name { font-size: 22px; font-weight: 700; }
+        .stock-ticker { font-size: 13px; color: #64748b; margin-top: 4px; }
+        .stock-price { font-size: 32px; font-weight: 700; color: #3b82f6; text-align: right; }
+        .stock-change { font-size: 13px; text-align: right; margin-top: 4px; }
+        .positive { color: #10b981; }
+        .negative { color: #ef4444; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: #111827;
+            border: 1px solid #1e2d4a;
+            border-radius: 10px;
+            padding: 16px 20px;
+        }
+
+        .metric-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .metric-value { font-size: 20px; font-weight: 600; }
+        .metric-tag { font-size: 11px; margin-top: 4px; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+
+        .bullish { color: #10b981; }
+        .bearish { color: #ef4444; }
+        .neutral { color: #f59e0b; }
+
+        .tag-bullish { background: #052e16; color: #10b981; }
+        .tag-bearish { background: #2d0a0a; color: #ef4444; }
+        .tag-neutral { background: #1c1407; color: #f59e0b; }
+
+        .analysis-card {
+            background: #111827;
+            border: 1px solid #1e2d4a;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .analysis-card h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+
+        .analysis-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">FinSight</div>
+    <div class="tagline">Quantitative Investment Research</div>
+</div>
+
+<div class="main">
+    <div class="search-section">
+        <h1>Analyze Any Stock</h1>
+        <p>Real market data + technical indicators + AI-powered research</p>
+        <div class="search-bar">
+            <input type="text" id="tickerInput" placeholder="Enter ticker e.g. NVDA" maxlength="10" />
+            <button id="analyzeBtn" onclick="analyze()">Analyze</button>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Analyzing market data...</p>
+    </div>
+
+    <div class="error" id="error">
+        <p id="errorMsg">Something went wrong. Please try again.</p>
+    </div>
+
+    <div class="results" id="results">
+        <div class="stock-header">
+            <div>
+                <div class="stock-name" id="stockName"></div>
+                <div class="stock-ticker" id="stockTicker"></div>
+            </div>
+            <div>
+                <div class="stock-price" id="stockPrice"></div>
+                <div class="stock-change" id="stockChange"></div>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">RSI</div>
+                <div class="metric-value" id="rsiValue"></div>
+                <div class="metric-tag" id="rsiTag"></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">MACD Signal</div>
+                <div class="metric-value" id="macdValue"></div>
+                <div class="metric-tag" id="macdTag"></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Trend (vs MA200)</div>
+                <div class="metric-value" id="ma200Value"></div>
+                <div class="metric-tag" id="maTag"></div>
+            </div>
+        </div>
+
+        <div class="analysis-card">
+            <h3>AI Research Report</h3>
+            <div class="analysis-text" id="analysisText"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('tickerInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') analyze();
+    });
+
+    async function analyze() {
+        const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+        if (!ticker) return;
+
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+        document.getElementById('analyzeBtn').disabled = true;
+
+        try {
+            const res = await fetch(`/analyze/${ticker}`);
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.detail || 'Analysis failed');
+
+            document.getElementById('stockName').textContent = data.name;
+            document.getElementById('stockTicker').textContent = data.ticker;
+            document.getElementById('stockPrice').textContent = `$${data.price}`;
+
+            const change = (data.week_52_change * 100).toFixed(1);
+            const changeEl = document.getElementById('stockChange');
+            changeEl.textContent = `${change > 0 ? '+' : ''}${change}% (52 week)`;
+            changeEl.className = `stock-change ${change > 0 ? 'positive' : 'negative'}`;
+
+            const rsi = data.technicals.rsi;
+            document.getElementById('rsiValue').textContent = rsi;
+            const rsiTag = document.getElementById('rsiTag');
+            rsiTag.textContent = data.technicals.rsi_signal;
+            rsiTag.className = `metric-tag tag-${data.technicals.rsi_signal}`;
+
+            document.getElementById('macdValue').textContent = data.technicals.macd;
+            const macdTag = document.getElementById('macdTag');
+            macdTag.textContent = data.technicals.macd_signal;
+            macdTag.className = `metric-tag tag-${data.technicals.macd_signal}`;
+
+            document.getElementById('ma200Value').textContent = `$${data.technicals.ma200}`;
+            const maTag = document.getElementById('maTag');
+            maTag.textContent = data.technicals.ma_trend;
+            maTag.className = `metric-tag tag-${data.technicals.ma_trend}`;
+
+            document.getElementById('analysisText').textContent = data.analysis;
+            document.getElementById('results').style.display = 'block';
+
+        } catch (err) {
+            document.getElementById('errorMsg').textContent = err.message;
+            document.getElementById('error').style.display = 'block';
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,10 +1,10 @@
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from google import genai
 from dotenv import load_dotenv
 import os
 import yfinance as yf
 import ta
-import pandas as pd
 
 load_dotenv()
 
@@ -12,9 +12,11 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI()
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def home():
-    return {"message": "FinSight is alive"}
+    with open("templates/index.html") as f:
+        return f.read()
+
 
 @app.get("/analyze/{ticker}")
 def analyze(ticker: str):
