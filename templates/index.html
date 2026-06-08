@@ -3,326 +3,691 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinSight</title>
+    <title>FinSight — Quantitative Research</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0a0e1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: #080c14;
             color: #e2e8f0;
             min-height: 100vh;
         }
 
-        .header {
-            padding: 24px 40px;
-            border-bottom: 1px solid #1e2d4a;
+        .topbar {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
+            padding: 14px 32px;
+            border-bottom: 1px solid #0f1f38;
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #3b82f6;
-            letter-spacing: -0.5px;
-        }
-
-        .tagline {
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .main {
-            max-width: 900px;
-            margin: 60px auto;
-            padding: 0 24px;
-        }
-
-        .search-section {
-            text-align: center;
-            margin-bottom: 48px;
-        }
-
-        .search-section h1 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .search-section p {
-            color: #64748b;
-            margin-bottom: 32px;
-            font-size: 15px;
-        }
-
-        .search-bar {
             display: flex;
-            gap: 12px;
-            max-width: 480px;
-            margin: 0 auto;
+            align-items: baseline;
+            gap: 8px;
         }
 
-        .search-bar input {
-            flex: 1;
-            padding: 14px 20px;
-            background: #111827;
-            border: 1px solid #1e2d4a;
-            border-radius: 10px;
-            color: #e2e8f0;
-            font-size: 16px;
+        .logo-mark {
+            font-size: 17px;
+            font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
-            outline: none;
-            transition: border-color 0.2s;
+            color: #e2e8f0;
         }
 
-        .search-bar input:focus {
-            border-color: #3b82f6;
+        .logo-mark span { color: #2563eb; }
+
+        .logo-sub {
+            font-size: 9px;
+            color: #1e3a5f;
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
 
-        .search-bar input::placeholder {
-            letter-spacing: 1px;
-            text-transform: none;
-            color: #374151;
+        .nav {
+            display: flex;
+            gap: 28px;
         }
 
-        .search-bar button {
-            padding: 14px 28px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
+        .nav a {
+            font-size: 10px;
+            color: #334155;
+            text-decoration: none;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: color 0.15s;
         }
 
-        .search-bar button:hover { background: #2563eb; }
-        .search-bar button:disabled { background: #1e3a5f; cursor: not-allowed; }
+        .nav a:hover { color: #64748b; }
+        .nav a.active { color: #2563eb; }
+
+        .search-zone {
+            padding: 36px 32px 28px;
+            border-bottom: 1px solid #0f1f38;
+        }
+
+        .search-label {
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+        }
+
+        .search-row {
+            display: flex;
+            align-items: stretch;
+            max-width: 520px;
+            height: 52px;
+        }
+
+        .input-wrap {
+            display: flex;
+            flex: 1;
+            border: 1px solid #1e3a5f;
+            border-right: none;
+        }
+
+        .input-prefix {
+            padding: 0 14px;
+            background: #0a1120;
+            color: #2563eb;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            border-right: 1px solid #1e3a5f;
+        }
+
+        #tickerInput {
+            background: #0a1120;
+            border: none;
+            outline: none;
+            color: #e2e8f0;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            padding: 0 16px;
+            width: 200px;
+            text-transform: uppercase;
+            font-family: inherit;
+        }
+
+        #tickerInput::placeholder {
+            color: #1e3a5f;
+            letter-spacing: 2px;
+        }
+
+        #analyzeBtn {
+            padding: 0 28px;
+            background: #2563eb;
+            border: none;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        #analyzeBtn:hover { background: #1d4ed8; }
+        #analyzeBtn:disabled { background: #0f2a5a; cursor: not-allowed; color: #334155; }
 
         .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
             display: none;
+            padding: 60px 32px;
+            text-align: center;
         }
 
-        .spinner {
-            width: 32px;
-            height: 32px;
-            border: 3px solid #1e2d4a;
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px;
+        .loading-text {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #334155;
+            animation: pulse 1.4s ease-in-out infinite;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        .results { display: none; }
+        .error-bar {
+            display: none;
+            padding: 16px 32px;
+            background: #1a0505;
+            border-bottom: 1px solid #3d0a0a;
+            font-size: 12px;
+            color: #ef4444;
+            letter-spacing: 1px;
+        }
 
-        .stock-header {
+        .body-grid {
+            display: none;
+            grid-template-columns: 1fr 300px;
+            min-height: 500px;
+        }
+
+        .left-panel {
+            padding: 28px 32px;
+            border-right: 1px solid #0f1f38;
+        }
+
+        .stock-ident {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            padding-bottom: 20px;
             margin-bottom: 24px;
-            padding: 24px;
-            background: #111827;
-            border: 1px solid #1e2d4a;
-            border-radius: 12px;
+            border-bottom: 1px solid #0f1f38;
         }
 
-        .stock-name { font-size: 22px; font-weight: 700; }
-        .stock-ticker { font-size: 13px; color: #64748b; margin-top: 4px; }
-        .stock-price { font-size: 32px; font-weight: 700; color: #3b82f6; text-align: right; }
-        .stock-change { font-size: 13px; text-align: right; margin-top: 4px; }
-        .positive { color: #10b981; }
-        .negative { color: #ef4444; }
+        .stock-sector {
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #334155;
+            margin-bottom: 5px;
+        }
 
-        .metrics-grid {
+        .stock-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .price-block { text-align: right; }
+
+        .stock-price {
+            font-size: 34px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+
+        .price-change {
+            font-size: 11px;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        .price-change.up { color: #10b981; }
+        .price-change.down { color: #ef4444; }
+
+        .signals-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
+            gap: 1px;
+            background: #0f1f38;
+            border: 1px solid #0f1f38;
+            margin-bottom: 28px;
         }
 
-        .metric-card {
-            background: #111827;
-            border: 1px solid #1e2d4a;
-            border-radius: 10px;
-            padding: 16px 20px;
+        .signal-cell {
+            background: #080c14;
+            padding: 16px 14px;
         }
 
-        .metric-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-        .metric-value { font-size: 20px; font-weight: 600; }
-        .metric-tag { font-size: 11px; margin-top: 4px; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+        .signal-label {
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #334155;
+            margin-bottom: 8px;
+        }
 
-        .bullish { color: #10b981; }
-        .bearish { color: #ef4444; }
-        .neutral { color: #f59e0b; }
+        .signal-value {
+            font-size: 22px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 6px;
+        }
+
+        .signal-tag {
+            display: inline-block;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 3px 7px;
+        }
 
         .tag-bullish { background: #052e16; color: #10b981; }
         .tag-bearish { background: #2d0a0a; color: #ef4444; }
-        .tag-neutral { background: #1c1407; color: #f59e0b; }
+        .tag-neutral { background: #1a1100; color: #d97706; }
+        .tag-overbought { background: #2d0a0a; color: #ef4444; }
+        .tag-oversold { background: #052e16; color: #10b981; }
 
-        .analysis-card {
-            background: #111827;
-            border: 1px solid #1e2d4a;
-            border-radius: 12px;
-            padding: 24px;
-        }
-
-        .analysis-card h3 {
-            font-size: 14px;
+        .report-label {
+            font-size: 9px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #1e3a5f;
+            margin-bottom: 14px;
+        }
+
+        .report-text {
+            font-size: 13px;
+            line-height: 1.9;
             color: #64748b;
-            margin-bottom: 16px;
         }
 
-        .analysis-text {
-            font-size: 14px;
-            line-height: 1.8;
-            color: #cbd5e1;
-            white-space: pre-wrap;
+        .report-text strong { color: #94a3b8; font-weight: 600; }
+        .report-text em { color: #64748b; font-style: normal; }
+
+        .right-panel {
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
         }
 
-        .error {
-            text-align: center;
-            padding: 40px;
-            color: #ef4444;
-            display: none;
+        .panel-section-label {
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #1e3a5f;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #0f1f38;
+            margin-bottom: 14px;
+        }
+
+        .pred-box {
+            border: 1px solid #1e3a5f;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .pred-direction {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .pred-direction.BULLISH { color: #10b981; }
+        .pred-direction.BEARISH { color: #ef4444; }
+        .pred-direction.NEUTRAL { color: #d97706; }
+
+        .pred-meta {
+            font-size: 11px;
+            color: #334155;
+            letter-spacing: 1px;
+            line-height: 2;
+        }
+
+        .pred-meta span { color: #64748b; }
+
+        .pred-reasoning {
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.7;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #0f1f38;
+        }
+
+        .conf-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .conf-track {
+            flex: 1;
+            height: 2px;
+            background: #0f1f38;
+        }
+
+        .conf-fill {
+            height: 2px;
+            background: #2563eb;
+            transition: width 0.4s ease;
+        }
+
+        .conf-pct {
+            font-size: 9px;
+            color: #2563eb;
+            letter-spacing: 1px;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .pred-saved {
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #10b981;
+            margin-top: 8px;
+        }
+
+        #predictBtn {
+            width: 100%;
+            padding: 11px;
+            background: transparent;
+            border: 1px solid #1e3a5f;
+            color: #2563eb;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        #predictBtn:hover { background: #0a1828; border-color: #2563eb; }
+        #predictBtn:disabled { color: #1e3a5f; cursor: not-allowed; border-color: #0f1f38; }
+
+        .watchlist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #0f1f38;
+        }
+
+        .wl-ticker {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .wl-date {
+            font-size: 9px;
+            color: #1e3a5f;
+            letter-spacing: 1px;
+        }
+
+        .wl-right { text-align: right; }
+
+        .wl-dir {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            margin-bottom: 3px;
+        }
+
+        .wl-dir.BULLISH { color: #10b981; }
+        .wl-dir.BEARISH { color: #ef4444; }
+        .wl-dir.NEUTRAL { color: #d97706; }
+
+        .wl-target {
+            font-size: 10px;
+            color: #334155;
+        }
+
+        .watchlist-empty {
+            font-size: 11px;
+            color: #1e3a5f;
+            letter-spacing: 1px;
+            padding: 12px 0;
+        }
+
+        .footer {
+            padding: 16px 32px;
+            border-top: 1px solid #0f1f38;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-left {
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #1e3a5f;
+        }
+
+        .footer-disclaimer {
+            font-size: 9px;
+            color: #1e3a5f;
+            max-width: 400px;
+            text-align: right;
         }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo">FinSight</div>
-    <div class="tagline">Quantitative Investment Research</div>
+<div class="topbar">
+    <div class="logo">
+        <div class="logo-mark">Fin<span>Sight</span></div>
+        <div class="logo-sub">Quant Research</div>
+    </div>
+    <nav class="nav">
+        <a class="active">Analysis</a>
+        <a onclick="scrollToWatchlist()">Watchlist</a>
+    </nav>
 </div>
 
-<div class="main">
-    <div class="search-section">
-        <h1>Analyze Any Stock</h1>
-        <p>Real market data + technical indicators + AI-powered research</p>
-        <div class="search-bar">
-            <input type="text" id="tickerInput" placeholder="Enter ticker e.g. NVDA" maxlength="10" />
-            <button id="analyzeBtn" onclick="analyze()">Analyze</button>
+<div class="search-zone">
+    <div class="search-label">Ticker symbol</div>
+    <div class="search-row">
+        <div class="input-wrap">
+            <div class="input-prefix">$</div>
+            <input type="text" id="tickerInput" placeholder="NVDA" maxlength="10" />
         </div>
+        <button id="analyzeBtn" onclick="analyze()">Run Analysis</button>
     </div>
+</div>
 
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Analyzing market data...</p>
-    </div>
+<div class="error-bar" id="errorBar"></div>
 
-    <div class="error" id="error">
-        <p id="errorMsg">Something went wrong. Please try again.</p>
-    </div>
+<div class="loading" id="loading">
+    <div class="loading-text">Fetching market data & running analysis</div>
+</div>
 
-    <div class="results" id="results">
-        <div class="stock-header">
+<div class="body-grid" id="bodyGrid">
+
+    <div class="left-panel">
+        <div class="stock-ident">
             <div>
+                <div class="stock-sector" id="stockTicker"></div>
                 <div class="stock-name" id="stockName"></div>
-                <div class="stock-ticker" id="stockTicker"></div>
             </div>
-            <div>
+            <div class="price-block">
                 <div class="stock-price" id="stockPrice"></div>
-                <div class="stock-change" id="stockChange"></div>
+                <div class="price-change" id="priceChange"></div>
             </div>
         </div>
 
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-label">RSI</div>
-                <div class="metric-value" id="rsiValue"></div>
-                <div class="metric-tag" id="rsiTag"></div>
+        <div class="signals-grid">
+            <div class="signal-cell">
+                <div class="signal-label">RSI · 14 day</div>
+                <div class="signal-value" id="rsiVal"></div>
+                <span class="signal-tag" id="rsiTag"></span>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">MACD Signal</div>
-                <div class="metric-value" id="macdValue"></div>
-                <div class="metric-tag" id="macdTag"></div>
+            <div class="signal-cell">
+                <div class="signal-label">MACD Signal</div>
+                <div class="signal-value" id="macdVal"></div>
+                <span class="signal-tag" id="macdTag"></span>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Trend (vs MA200)</div>
-                <div class="metric-value" id="ma200Value"></div>
-                <div class="metric-tag" id="maTag"></div>
+            <div class="signal-cell">
+                <div class="signal-label">Trend · MA200</div>
+                <div class="signal-value" id="ma200Val"></div>
+                <span class="signal-tag" id="maTag"></span>
             </div>
         </div>
 
-        <div class="analysis-card">
-            <h3>AI Research Report</h3>
-            <div class="analysis-text" id="analysisText"></div>
+        <div class="report-label">AI Research Report</div>
+        <div class="report-text" id="reportText"></div>
+    </div>
+
+    <div class="right-panel">
+        <div>
+            <div class="panel-section-label">AI Prediction</div>
+            <div id="predBox" style="display:none">
+                <div class="pred-box">
+                    <div class="pred-direction" id="predDir"></div>
+                    <div class="pred-meta">
+                        Target <span id="predTarget"></span><br>
+                        Entry <span id="predEntry"></span><br>
+                        Timeframe <span id="predTime"></span>
+                    </div>
+                    <div class="pred-reasoning" id="predReasoning"></div>
+                    <div class="conf-row">
+                        <div class="conf-track">
+                            <div class="conf-fill" id="confFill"></div>
+                        </div>
+                        <div class="conf-pct" id="confPct"></div>
+                    </div>
+                    <div class="pred-saved">✓ Saved to watchlist</div>
+                </div>
+            </div>
+            <button id="predictBtn" onclick="generatePrediction()">Generate Prediction →</button>
+        </div>
+
+        <div id="watchlistSection">
+            <div class="panel-section-label">Watchlist</div>
+            <div id="watchlistItems"></div>
         </div>
     </div>
+
+</div>
+
+<div class="footer">
+    <div class="footer-left">FinSight · Quantitative Research Platform</div>
+    <div class="footer-disclaimer">For educational purposes only. Not financial advice. Always conduct your own research before investing.</div>
 </div>
 
 <script>
-    document.getElementById('tickerInput').addEventListener('keypress', function(e) {
+    let currentTicker = '';
+
+    document.getElementById('tickerInput').addEventListener('keypress', e => {
         if (e.key === 'Enter') analyze();
     });
+
+    function scrollToWatchlist() {
+        document.getElementById('watchlistSection').scrollIntoView({ behavior: 'smooth' });
+    }
 
     async function analyze() {
         const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
         if (!ticker) return;
 
+        currentTicker = ticker;
+
         document.getElementById('loading').style.display = 'block';
-        document.getElementById('results').style.display = 'none';
-        document.getElementById('error').style.display = 'none';
+        document.getElementById('bodyGrid').style.display = 'none';
+        document.getElementById('errorBar').style.display = 'none';
         document.getElementById('analyzeBtn').disabled = true;
+        document.getElementById('predBox').style.display = 'none';
+        document.getElementById('predictBtn').textContent = 'Generate Prediction →';
 
         try {
             const res = await fetch(`/analyze/${ticker}`);
             const data = await res.json();
-
             if (!res.ok) throw new Error(data.detail || 'Analysis failed');
 
-            document.getElementById('stockName').textContent = data.name;
             document.getElementById('stockTicker').textContent = data.ticker;
+            document.getElementById('stockName').textContent = data.name;
             document.getElementById('stockPrice').textContent = `$${data.price}`;
 
-            const change = (data.week_52_change * 100).toFixed(1);
-            const changeEl = document.getElementById('stockChange');
-            changeEl.textContent = `${change > 0 ? '+' : ''}${change}% (52 week)`;
-            changeEl.className = `stock-change ${change > 0 ? 'positive' : 'negative'}`;
+            const chg = (data.week_52_change * 100).toFixed(1);
+            const chgEl = document.getElementById('priceChange');
+            chgEl.textContent = `${chg > 0 ? '+' : ''}${chg}% · 52 week`;
+            chgEl.className = `price-change ${chg > 0 ? 'up' : 'down'}`;
 
-            const rsi = data.technicals.rsi;
-            document.getElementById('rsiValue').textContent = rsi;
-            const rsiTag = document.getElementById('rsiTag');
-            rsiTag.textContent = data.technicals.rsi_signal;
-            rsiTag.className = `metric-tag tag-${data.technicals.rsi_signal}`;
+            document.getElementById('rsiVal').textContent = data.technicals.rsi;
+            setTag('rsiTag', data.technicals.rsi_signal);
 
-            document.getElementById('macdValue').textContent = data.technicals.macd;
-            const macdTag = document.getElementById('macdTag');
-            macdTag.textContent = data.technicals.macd_signal;
-            macdTag.className = `metric-tag tag-${data.technicals.macd_signal}`;
+            document.getElementById('macdVal').textContent = data.technicals.macd;
+            setTag('macdTag', data.technicals.macd_signal);
 
-            document.getElementById('ma200Value').textContent = `$${data.technicals.ma200}`;
-            const maTag = document.getElementById('maTag');
-            maTag.textContent = data.technicals.ma_trend;
-            maTag.className = `metric-tag tag-${data.technicals.ma_trend}`;
+            document.getElementById('ma200Val').textContent = `$${data.technicals.ma200}`;
+            setTag('maTag', data.technicals.ma_trend);
 
-            document.getElementById('analysisText').innerHTML = data.analysis
+            document.getElementById('reportText').innerHTML = data.analysis
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/\n/g, '<br>');
-            document.getElementById('results').style.display = 'block';
+
+            document.getElementById('bodyGrid').style.display = 'grid';
+            loadWatchlist();
 
         } catch (err) {
-            document.getElementById('errorMsg').textContent = err.message;
-            document.getElementById('error').style.display = 'block';
+            document.getElementById('errorBar').textContent = `Error: ${err.message}`;
+            document.getElementById('errorBar').style.display = 'block';
         } finally {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('analyzeBtn').disabled = false;
         }
     }
+
+    function setTag(elId, signal) {
+        const el = document.getElementById(elId);
+        const labels = {
+            bullish: 'Bullish', bearish: 'Bearish', neutral: 'Neutral',
+            overbought: 'Overbought', oversold: 'Oversold'
+        };
+        el.textContent = labels[signal] || signal;
+        el.className = `signal-tag tag-${signal}`;
+    }
+
+    async function generatePrediction() {
+        if (!currentTicker) return;
+        const btn = document.getElementById('predictBtn');
+        btn.disabled = true;
+        btn.textContent = 'Running model...';
+
+        try {
+            const res = await fetch(`/predict/${currentTicker}`, { method: 'POST' });
+            const data = await res.json();
+
+            const dirEl = document.getElementById('predDir');
+            dirEl.textContent = data.direction;
+            dirEl.className = `pred-direction ${data.direction}`;
+
+            document.getElementById('predTarget').textContent = `$${data.target_price}`;
+            document.getElementById('predEntry').textContent = `$${data.current_price}`;
+            document.getElementById('predTime').textContent = `${data.timeframe_days} days`;
+            document.getElementById('predReasoning').textContent = data.reasoning;
+            document.getElementById('confFill').style.width = `${data.confidence}%`;
+            document.getElementById('confPct').textContent = `${data.confidence}% conf`;
+
+            document.getElementById('predBox').style.display = 'block';
+            btn.textContent = 'Regenerate →';
+            loadWatchlist();
+
+        } catch (err) {
+            btn.textContent = 'Generate Prediction →';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function loadWatchlist() {
+        try {
+            const res = await fetch('/watchlist');
+            const data = await res.json();
+            const container = document.getElementById('watchlistItems');
+
+            if (!data.predictions || data.predictions.length === 0) {
+                container.innerHTML = '<div class="watchlist-empty">No predictions yet</div>';
+                return;
+            }
+
+            container.innerHTML = data.predictions.slice(0, 6).map(p => {
+                const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                return `
+                    <div class="watchlist-item">
+                        <div>
+                            <div class="wl-ticker">${p.ticker}</div>
+                            <div class="wl-date">${date} · ${p.timeframe_days}d · ${p.confidence}%</div>
+                        </div>
+                        <div class="wl-right">
+                            <div class="wl-dir ${p.direction}">${p.direction}</div>
+                            <div class="wl-target">→ $${p.target_price}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (e) {}
+    }
+
+    loadWatchlist();
 </script>
 
 </body>
