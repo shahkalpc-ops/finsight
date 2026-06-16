@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight — Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #050507;
+            color: #F1F5F9;
+            min-height: 100vh;
+            font-size: 13px;
+        }
+
+        .serif { font-family: 'Fraunces', serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        .label {
+            font-size: 10px;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+        }
+
+        .nav-rail {
+            border-right: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            flex-direction: column;
+            padding: 18px 0;
+        }
+
+        .nav-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 36px;
+            cursor: pointer;
+        }
+
+        .nav-logo .serif {
+            font-size: 18px;
+            font-weight: 600;
+            color: #F59E0B;
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            justify-content: center;
+            padding: 11px 0;
+            border-left: 2px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+
+        .nav-item:hover { border-left-color: rgba(245,158,11,0.4); }
+        .nav-item.active { border-left-color: #F59E0B; }
+
+        .nav-icon {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748B;
+        }
+        .nav-item.active .nav-icon { color: #F1F5F9; }
+
+        .nav-spacer { flex: 1; }
+
+        .nav-avatar {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 6px;
+        }
+
+        .nav-avatar div {
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: #F59E0B;
+            font-family: 'Fraunces', serif;
+        }
+
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .main {
+            padding: 36px 64px 28px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 0;
+            height: 46px;
+            max-width: 420px;
+            margin-bottom: 32px;
+        }
+
+        .search-prefix {
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            background: #0E1015;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-right: none;
+            color: #F59E0B;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .search-bar input {
+            background: #0E1015;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-left: none;
+            border-right: none;
+            color: #F1F5F9;
+            font-size: 13px;
+            padding: 0 12px;
+            flex: 1;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .search-bar input:focus { border-color: rgba(245,158,11,0.4); }
+        .search-bar input::placeholder { color: #475569; letter-spacing: normal; text-transform: none; }
+
+        .search-button {
+            padding: 0 20px;
+            background: #F59E0B;
+            border: none;
+            color: #050507;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.15s;
+        }
+
+        .search-button:hover { background: #FBB034; }
+        .search-button:disabled { background: #5a4317; color: #888; cursor: not-allowed; }
+
+        .status-message {
+            font-size: 13px;
+            color: #64748B;
+            padding: 40px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .status-message.error { color: #EF4444; }
+
+        .results-grid {
+            display: none;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 48px;
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 22px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .stock-sector {
+            font-size: 10px;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: #64748B;
+            margin-bottom: 5px;
+        }
+
+        .stock-name {
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .price-block { text-align: right; }
+
+        .stock-price {
+            font-size: 30px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .price-change {
+            font-size: 12px;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .price-change.up { color: #10B981; }
+        .price-change.down { color: #EF4444; }
+
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .signal-cell {
+            background: #0E1015;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 14px 16px;
+        }
+
+        .signal-label {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #64748B;
+            margin-bottom: 8px;
+        }
+
+        .signal-value {
+            font-size: 19px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .signal-state {
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        .signal-state.bullish { color: #10B981; }
+        .signal-state.bearish { color: #EF4444; }
+        .signal-state.neutral { color: #F59E0B; }
+        .signal-state.overbought { color: #EF4444; }
+        .signal-state.oversold { color: #10B981; }
+
+        .report-label {
+            margin-bottom: 14px;
+        }
+
+        .report-text {
+            font-size: 14px;
+            line-height: 1.9;
+            color: #C9CDD3;
+        }
+
+        .report-text strong { color: #F1F5F9; font-weight: 600; }
+        .report-text em { color: #C9CDD3; font-style: normal; }
+
+        .right-rail {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .prediction-card {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px;
+        }
+
+        .prediction-direction {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .prediction-direction.BULLISH { color: #10B981; }
+        .prediction-direction.BEARISH { color: #EF4444; }
+        .prediction-direction.NEUTRAL { color: #F59E0B; }
+
+        .prediction-meta {
+            width: 100%;
+            font-size: 11px;
+            color: #64748B;
+            margin-bottom: 14px;
+        }
+
+        .prediction-meta td {
+            padding: 2.5px 0;
+        }
+
+        .prediction-meta td:last-child {
+            text-align: right;
+            color: #F1F5F9;
+        }
+
+        .prediction-reasoning {
+            font-size: 12px;
+            color: #94A3B8;
+            line-height: 1.7;
+            margin-bottom: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .conf-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .conf-track {
+            flex: 1;
+            height: 2px;
+            background: rgba(255,255,255,0.07);
+        }
+
+        .conf-fill {
+            height: 2px;
+            background: #F59E0B;
+            transition: width 0.4s ease;
+        }
+
+        .conf-pct {
+            font-size: 10px;
+            color: #F59E0B;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .predict-button {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #F59E0B;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.15s;
+        }
+
+        .predict-button:hover { border-color: #F59E0B; background: rgba(245,158,11,0.05); }
+        .predict-button:disabled { color: #64748B; cursor: not-allowed; border-color: rgba(255,255,255,0.07); }
+
+        .predict-saved {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #10B981;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 13px 36px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: #3F4554;
+            text-transform: uppercase;
+            grid-column: 1 / -1;
+            margin-left: 60px;
+        }
+
+        .footer .disclaimer {
+            text-transform: none;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-grid">
+
+    <div class="nav-rail">
+        <div class="nav-logo" onclick="window.location.href='/'">
+            <div class="serif">F</div>
+        </div>
+        <div class="nav-items">
+            <div class="nav-item" title="Briefing" onclick="window.location.href='/'">
+                <span class="nav-icon">N</span>
+            </div>
+            <div class="nav-item active" title="Analysis">
+                <span class="nav-icon">A</span>
+            </div>
+            <div class="nav-item" title="Watchlist">
+                <span class="nav-icon">W</span>
+            </div>
+            <div class="nav-item" title="Portfolio">
+                <span class="nav-icon">P</span>
+            </div>
+        </div>
+        <div class="nav-spacer"></div>
+        <div class="nav-avatar">
+            <div>K</div>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="main">
+
+            <div class="search-bar">
+                <div class="search-prefix serif">$</div>
+                <input type="text" id="tickerInput" placeholder="Ticker..." maxlength="10">
+                <button class="search-button" id="searchBtn" onclick="runAnalysis()">Analyze</button>
+            </div>
+
+            <div class="status-message" id="statusMessage">Fetching market data &amp; running analysis...</div>
+
+            <div class="results-grid" id="resultsGrid">
+
+                <div class="left-col">
+
+                    <div class="stock-header">
+                        <div>
+                            <div class="stock-sector" id="stockTicker"></div>
+                            <div class="serif stock-name" id="stockName"></div>
+                        </div>
+                        <div class="price-block">
+                            <div class="mono stock-price" id="stockPrice"></div>
+                            <div class="mono price-change" id="priceChange"></div>
+                        </div>
+                    </div>
+
+                    <div class="signals-grid">
+                        <div class="signal-cell">
+                            <div class="signal-label">RSI &middot; 14d</div>
+                            <div class="mono signal-value" id="rsiVal"></div>
+                            <div class="signal-state" id="rsiState"></div>
+                        </div>
+                        <div class="signal-cell">
+                            <div class="signal-label">MACD</div>
+                            <div class="mono signal-value" id="macdVal"></div>
+                            <div class="signal-state" id="macdState"></div>
+                        </div>
+                        <div class="signal-cell">
+                            <div class="signal-label">vs MA200</div>
+                            <div class="mono signal-value" id="ma200Val"></div>
+                            <div class="signal-state" id="maState"></div>
+                        </div>
+                    </div>
+
+                    <div class="label report-label">Research note</div>
+                    <div class="report-text" id="reportText"></div>
+
+                </div>
+
+                <div class="right-rail">
+
+                    <div>
+                        <div class="label" style="margin-bottom: 14px;">AI prediction</div>
+                        <div id="predictionResult" style="display:none">
+                            <div class="prediction-card">
+                                <div class="prediction-direction" id="predDirection"></div>
+                                <table class="prediction-meta mono">
+                                    <tr><td style="font-family:'Inter',sans-serif;">Target</td><td id="predTarget"></td></tr>
+                                    <tr><td style="font-family:'Inter',sans-serif;">Entry</td><td id="predEntry"></td></tr>
+                                    <tr><td style="font-family:'Inter',sans-serif;">Window</td><td id="predWindow"></td></tr>
+                                </table>
+                                <div class="prediction-reasoning" id="predReasoning"></div>
+                                <div class="conf-row">
+                                    <div class="conf-track"><div class="conf-fill" id="confFill"></div></div>
+                                    <div class="mono conf-pct" id="confPct"></div>
+                                </div>
+                            </div>
+                            <div class="predict-saved">&#10003; Saved to watchlist</div>
+                        </div>
+                        <button class="predict-button" id="predictBtn" onclick="Prediction()">Generate prediction &rarr;</button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>FinSight &middot; Quantitative research, built for learning</div>
+        <div class="disclaimer">Educational use only &middot; not financial advice</div>
+    </div>
+
+</div>
+
+<script>
+    let currentTicker = '';
+
+    document.getElementById('tickerInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') runAnalysis();
+    });
+
+    window.addEventListener('load', () => {
+        const params = new URLSearchParams(window.location.search);
+        const ticker = params.get('ticker');
+        if (ticker) {
+            document.getElementById('tickerInput').value = ticker;
+            runAnalysis();
+        }
+    });
+
+    async function runAnalysis() {
+        const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+        if (!ticker) return;
+        currentTicker = ticker;
+
+        const status = document.getElementById('statusMessage');
+        const results = document.getElementById('resultsGrid');
+        const btn = document.getElementById('searchBtn');
+
+        status.textContent = 'Fetching market data & running analysis...';
+        status.className = 'status-message';
+        status.style.display = 'block';
+        results.style.display = 'none';
+        btn.disabled = true;
+
+        document.getElementById('predictionResult').style.display = 'none';
+        document.getElementById('predictBtn').textContent = 'Generate prediction →';
+        document.getElementById('predictBtn').disabled = false;
+
+        try {
+            const res = await fetch(`/analyze/${ticker}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Analysis failed');
+
+            document.getElementById('stockTicker').textContent = `${data.ticker} · NASDAQ`;
+            document.getElementById('stockName').textContent = data.name;
+            document.getElementById('stockPrice').textContent = `$${data.price}`;
+
+            const chgEl = document.getElementById('priceChange');
+            if (data.week_52_change && data.week_52_change !== 'N/A') {
+                const chg = (data.week_52_change * 100).toFixed(1);
+                chgEl.textContent = `${chg > 0 ? '+' : ''}${chg}% · 52 week`;
+                chgEl.className = `mono price-change ${parseFloat(chg) > 0 ? 'up' : 'down'}`;
+            } else {
+                chgEl.textContent = 'N/A · 52 week';
+                chgEl.className = 'mono price-change';
+            }
+            
+            document.getElementById('rsiVal').textContent = data.technicals.rsi;
+            setSignalState('rsiState', data.technicals.rsi_signal);
+
+            document.getElementById('macdVal').textContent = data.technicals.macd;
+            setSignalState('macdState', data.technicals.macd_signal);
+
+            document.getElementById('ma200Val').textContent = `$${data.technicals.ma200}`;
+            setSignalState('maState', data.technicals.ma_trend);
+
+            document.getElementById('reportText').innerHTML = data.analysis
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br><br>');
+
+            status.style.display = 'none';
+            results.style.display = 'grid';
+
+        } catch (err) {
+            status.textContent = `Error: ${err.message}`;
+            status.className = 'status-message error';
+            status.style.display = 'block';
+            results.style.display = 'none';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function setSignalState(elId, signal) {
+        const el = document.getElementById(elId);
+        const labels = {
+            bullish: 'Bullish', bearish: 'Bearish', neutral: 'Neutral',
+            overbought: 'Overbought', oversold: 'Oversold'
+        };
+        el.textContent = labels[signal] || signal;
+        el.className = `signal-state ${signal}`;
+    }
+
+    async function generatePrediction() {
+        if (!currentTicker) return;
+        const btn = document.getElementById('predictBtn');
+        btn.disabled = true;
+        btn.textContent = 'Running model...';
+
+        try {
+            const res = await fetch(`/predict/${currentTicker}`, { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Prediction failed');
+
+            const dirEl = document.getElementById('predDirection');
+            dirEl.textContent = data.direction;
+            dirEl.className = `prediction-direction ${data.direction}`;
+
+            document.getElementById('predTarget').textContent = `$${data.target_price}`;
+            document.getElementById('predEntry').textContent = `$${data.current_price}`;
+            document.getElementById('predWindow').textContent = `${data.timeframe_days} days`;
+            document.getElementById('predReasoning').textContent = data.reasoning;
+            document.getElementById('confFill').style.width = `${data.confidence}%`;
+            document.getElementById('confPct').textContent = `${data.confidence}%`;
+
+            document.getElementById('predictionResult').style.display = 'block';
+            btn.textContent = 'Regenerate →';
+
+        } catch (err) {
+            btn.textContent = 'Generate prediction →';
+            alert(`Error: ${err.message}`);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

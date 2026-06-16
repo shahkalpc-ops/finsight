@@ -6,17 +6,39 @@ import os
 import yfinance as yf
 import ta
 from database import init_db, save_prediction, get_predictions
+import time
 
 load_dotenv()
 init_db()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
+def gemini_with_retry(prompt, max_attempts=3):
+    for attempt in range(max_attempts):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            if attempt < max_attempts - 1:
+                wait = 2 ** attempt
+                print(f"Gemini error (attempt {attempt + 1}): {e}. Retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                raise e
+
 app = FastAPI()
 
 @app.get("/", response_class=HTMLResponse)
 def home():
     with open("templates/index.html") as f:
+        return f.read()
+
+@app.get("/analyze.html", response_class=HTMLResponse)
+def analyze_page():
+    with open("templates/analyze.html") as f:
         return f.read()
 
 @app.get("/analyze/{ticker}")
@@ -63,10 +85,7 @@ def analyze(ticker: str):
     Be specific to these exact numbers.
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
+    analysis_text = gemini_with_retry(prompt)
 
     return {
         "ticker": ticker,
@@ -85,7 +104,7 @@ def analyze(ticker: str):
             "ma200": round(ma200, 2),
             "ma_trend": ma_signal
         },
-        "analysis": response.text
+        "analysis": analysis_text
     }
 
 @app.post("/predict/{ticker}")
@@ -120,12 +139,9 @@ def generate_prediction(ticker: str):
     REASONING: [2-3 sentences explaining the prediction based on the signals]
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
+    response_text = gemini_with_retry(prompt)
 
-    lines = response.text.strip().split("\n")
+    lines = response_text.strip().split("\n")
     parsed = {}
     for line in lines:
         if ":" in line:
