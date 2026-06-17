@@ -7,6 +7,7 @@ import yfinance as yf
 import ta
 from database import init_db, save_prediction, get_predictions
 import time
+from google.genai import types
 
 load_dotenv()
 init_db()
@@ -16,9 +17,11 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 def gemini_with_retry(prompt, max_attempts=3):
     for attempt in range(max_attempts):
         try:
+            from google.genai import types
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=prompt
+                contents=prompt,
+                config=types.GenerateContentConfig(temperature=0)
             )
             return response.text
         except Exception as e:
@@ -40,6 +43,11 @@ def home():
 def analyze_page():
     with open("templates/analyze.html") as f:
         return f.read()
+    
+@app.get("/watchlist.html", response_class=HTMLResponse)
+def watchlist_page():
+    with open("templates/watchlist.html") as f:
+        return f.read()    
 
 @app.get("/analyze/{ticker}")
 def analyze(ticker: str):

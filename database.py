@@ -9,7 +9,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS predictions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ticker TEXT NOT NULL,
+            ticker TEXT NOT NULL UNIQUE,
             company_name TEXT,
             direction TEXT NOT NULL,
             price_at_prediction REAL,
@@ -32,6 +32,17 @@ def save_prediction(ticker, company_name, direction, price, target_price, confid
         INSERT INTO predictions 
         (ticker, company_name, direction, price_at_prediction, target_price, confidence, timeframe_days, reasoning, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(ticker) DO UPDATE SET
+            company_name=excluded.company_name,
+            direction=excluded.direction,
+            price_at_prediction=excluded.price_at_prediction,
+            target_price=excluded.target_price,
+            confidence=excluded.confidence,
+            timeframe_days=excluded.timeframe_days,
+            reasoning=excluded.reasoning,
+            created_at=excluded.created_at,
+            resolved=0,
+            outcome=NULL
     """, (ticker, company_name, direction, price, target_price, confidence, timeframe_days, reasoning, datetime.now().isoformat()))
     conn.commit()
     conn.close()

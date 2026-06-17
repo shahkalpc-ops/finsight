@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight — Watchlist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #050507;
+            color: #F1F5F9;
+            min-height: 100vh;
+            font-size: 13px;
+        }
+
+        .serif { font-family: 'Fraunces', serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        .label {
+            font-size: 10px;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+        }
+
+        .nav-rail {
+            border-right: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            flex-direction: column;
+            padding: 18px 0;
+        }
+
+        .nav-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 36px;
+            cursor: pointer;
+        }
+
+        .nav-logo .serif {
+            font-size: 18px;
+            font-weight: 600;
+            color: #F59E0B;
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            justify-content: center;
+            padding: 11px 0;
+            border-left: 2px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+
+        .nav-item:hover { border-left-color: rgba(245,158,11,0.4); }
+        .nav-item.active { border-left-color: #F59E0B; }
+
+        .nav-icon {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748B;
+        }
+
+        .nav-item.active .nav-icon { color: #F1F5F9; }
+
+        .nav-spacer { flex: 1; }
+
+        .nav-avatar {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 6px;
+        }
+
+        .nav-avatar div {
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: #F59E0B;
+            font-family: 'Fraunces', serif;
+        }
+
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .main {
+            padding: 36px 64px 28px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .page-header {
+            padding-bottom: 22px;
+            margin-bottom: 28px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: #64748B;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 0;
+            color: #64748B;
+        }
+
+        .empty-state .serif {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #94A3B8;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .empty-cta {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #F59E0B;
+            color: #050507;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .watchlist-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .watchlist-table th {
+            text-align: left;
+            padding: 0 20px 12px 0;
+            font-size: 10px;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: #64748B;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            white-space: nowrap;
+        }
+
+        .watchlist-table th.right { text-align: right; }
+
+        .watchlist-table td {
+            padding: 14px 20px 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            vertical-align: top;
+        }
+
+        .watchlist-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .watchlist-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .td-right { text-align: right; }
+
+        .ticker-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .company-name {
+            font-size: 11px;
+            color: #64748B;
+        }
+
+        .direction-bull { color: #10B981; font-weight: 600; font-size: 12px; letter-spacing: 1px; }
+        .direction-bear { color: #EF4444; font-weight: 600; font-size: 12px; letter-spacing: 1px; }
+        .direction-neu { color: #F59E0B; font-weight: 600; font-size: 12px; letter-spacing: 1px; }
+
+        .conf-mini-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .conf-mini-track {
+            width: 60px;
+            height: 2px;
+            background: rgba(255,255,255,0.07);
+        }
+
+        .conf-mini-fill {
+            height: 2px;
+            background: #F59E0B;
+        }
+
+        .conf-mini-pct {
+            font-size: 11px;
+            color: #F59E0B;
+            min-width: 28px;
+            text-align: right;
+        }
+
+        .re-analyze-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #F59E0B;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .re-analyze-btn:hover {
+            border-color: #F59E0B;
+            background: rgba(245,158,11,0.05);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 13px 36px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: #3F4554;
+            text-transform: uppercase;
+            grid-column: 1 / -1;
+            margin-left: 60px;
+        }
+
+        .footer .disclaimer {
+            text-transform: none;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-grid">
+
+    <div class="nav-rail">
+        <div class="nav-logo" onclick="window.location.href='/'">
+            <div class="serif">F</div>
+        </div>
+        <div class="nav-items">
+            <div class="nav-item" onclick="window.location.href='/'">
+                <span class="nav-icon">N</span>
+            </div>
+            <div class="nav-item" onclick="window.location.href='/analyze.html'">
+                <span class="nav-icon">A</span>
+            </div>
+            <div class="nav-item active">
+                <span class="nav-icon">W</span>
+            </div>
+            <div class="nav-item" title="Portfolio">
+                <span class="nav-icon">P</span>
+            </div>
+        </div>
+        <div class="nav-spacer"></div>
+        <div class="nav-avatar">
+            <div>K</div>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="main">
+
+            <div class="page-header">
+                <div>
+                    <div class="serif page-title">Watchlist</div>
+                    <div class="page-subtitle">Your active predictions, one per ticker</div>
+                </div>
+                <button class="empty-cta" onclick="window.location.href='/analyze.html'">+ New analysis</button>
+            </div>
+
+            <div id="emptyState" style="display:none">
+                <div class="empty-state">
+                    <div class="serif">No predictions yet</div>
+                    <p>Run an analysis and generate a prediction to start tracking.</p>
+                    <button class="empty-cta" onclick="window.location.href='/analyze.html'">Analyze a stock</button>
+                </div>
+            </div>
+
+            <table class="watchlist-table" id="watchlistTable" style="display:none">
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Direction</th>
+                        <th class="right">Entry</th>
+                        <th class="right">Target</th>
+                        <th class="right">Window</th>
+                        <th class="right">Confidence</th>
+                        <th class="right">Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="watchlistBody"></tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>FinSight &middot; Quantitative research, built for learning</div>
+        <div class="disclaimer">Educational use only &middot; not financial advice</div>
+    </div>
+
+</div>
+
+<script>
+    async function loadWatchlist() {
+        try {
+            const res = await fetch('/watchlist');
+            const data = await res.json();
+            const predictions = data.predictions || [];
+
+            if (predictions.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+
+            const tbody = document.getElementById('watchlistBody');
+            const table = document.getElementById('watchlistTable');
+
+            tbody.innerHTML = predictions.map(p => {
+                const date = new Date(p.created_at).toLocaleDateString('en-US', {
+                    month: 'short', day: 'numeric', year: 'numeric'
+                });
+                const dirClass = p.direction === 'BULLISH' ? 'direction-bull'
+                    : p.direction === 'BEARISH' ? 'direction-bear'
+                    : 'direction-neu';
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="ticker-name">${p.ticker}</div>
+                            <div class="company-name">${p.company_name || ''}</div>
+                        </td>
+                        <td><span class="${dirClass}">${p.direction}</span></td>
+                        <td class="td-right mono">$${p.price_at_prediction}</td>
+                        <td class="td-right mono">$${p.target_price}</td>
+                        <td class="td-right mono">${p.timeframe_days}d</td>
+                        <td class="td-right">
+                            <div class="conf-mini-row">
+                                <div class="conf-mini-track">
+                                    <div class="conf-mini-fill" style="width:${p.confidence}%"></div>
+                                </div>
+                                <div class="mono conf-mini-pct">${p.confidence}%</div>
+                            </div>
+                        </td>
+                        <td class="td-right mono" style="font-size:11px; color:#64748B; white-space:nowrap;">${date}</td>
+                        <td class="td-right">
+                            <button class="re-analyze-btn" onclick="window.location.href='/analyze.html?ticker=${p.ticker}'">
+                                Re-analyze
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            table.style.display = 'table';
+
+        } catch (err) {
+            console.error('Failed to load watchlist:', err);
+        }
+    }
+
+    loadWatchlist();
+</script>
+
+</body>
+</html>
