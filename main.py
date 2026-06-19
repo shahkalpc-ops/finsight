@@ -48,6 +48,51 @@ def analyze_page():
 def watchlist_page():
     with open("templates/watchlist.html") as f:
         return f.read()    
+    
+@app.get("/news/{ticker}")
+def get_news(ticker: str):
+    stock = yf.Ticker(ticker)
+    news = stock.news
+
+    if not news:
+        return {"ticker": ticker, "articles": []}
+
+    articles = []
+    for item in news[:6]:
+        title = item.get("content", {}).get("title", "")
+        url = item.get("content", {}).get("canonicalUrl", {}).get("url", "")
+        source = item.get("content", {}).get("provider", {}).get("displayName", "")
+        
+        if not title:
+            continue
+
+        articles.append({
+            "title": title,
+            "url": url,
+            "source": source
+        })
+
+    if not articles:
+        return {"ticker": ticker, "articles": []}
+
+    headlines = "\n".join([f"- {a['title']}" for a in articles])
+    prompt = f"""You are a financial analyst. For each headline below about {ticker} stock, classify it as BULLISH, BEARISH, or NEUTRAL for the stock price. 
+
+Headlines:
+{headlines}
+
+Respond with exactly one word per headline in the same order: BULLISH, BEARISH, or NEUTRAL. One per line, nothing else."""
+
+    try:
+        sentiment_text = gemini_with_retry(prompt)
+        sentiments = [s.strip().upper() for s in sentiment_text.strip().split("\n")]
+    except:
+        sentiments = ["NEUTRAL"] * len(articles)
+
+    for i, article in enumerate(articles):
+        article["sentiment"] = sentiments[i] if i < len(sentiments) else "NEUTRAL"
+
+    return {"ticker": ticker, "articles": articles}
 
 @app.get("/analyze/{ticker}")
 def analyze(ticker: str):

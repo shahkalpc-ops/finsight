@@ -387,6 +387,43 @@
             text-transform: none;
             letter-spacing: 0.5px;
         }
+
+        .news-item {
+            padding: 13px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .news-item:last-child {
+            border-bottom: none;
+        }
+
+        .news-title {
+            font-size: 13px;
+            color: #D4D2CD;
+            margin-bottom: 5px;
+            line-height: 1.5;
+            text-decoration: none;
+            display: block;
+        }
+
+        .news-title:hover { color: #F1F5F9; }
+
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .news-source {
+            font-size: 10px;
+            color: #64748B;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .news-sentiment-bull { font-size: 10px; color: #10B981; letter-spacing: 1px; }
+        .news-sentiment-bear { font-size: 10px; color: #EF4444; letter-spacing: 1px; }
+        .news-sentiment-neu { font-size: 10px; color: #F59E0B; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -463,6 +500,8 @@
 
                     <div class="label report-label">Research note</div>
                     <div class="report-text" id="reportText"></div>
+                    <div class="label" style="margin-top: 32px; margin-bottom: 14px;">Latest headlines</div>
+                    <div id="newsContainer"></div>
 
                 </div>
 
@@ -573,6 +612,7 @@
 
             status.style.display = 'none';
             results.style.display = 'grid';
+            loadNews(ticker);
 
         } catch (err) {
             status.textContent = `Error: ${err.message}`;
@@ -624,6 +664,39 @@
             alert(`Error: ${err.message}`);
         } finally {
             btn.disabled = false;
+        }
+    }
+
+    async function loadNews(ticker) {
+        const container = document.getElementById('newsContainer');
+        container.innerHTML = '<div style="color:#64748B; font-size:12px;">Loading headlines...</div>';
+
+        try {
+            const res = await fetch(`/news/${ticker}`);
+            const data = await res.json();
+
+            if (!data.articles || data.articles.length === 0) {
+                container.innerHTML = '<div style="color:#64748B; font-size:12px;">No recent headlines found.</div>';
+                return;
+            }
+
+            container.innerHTML = data.articles.map(a => {
+                const sentClass = a.sentiment === 'BULLISH' ? 'news-sentiment-bull'
+                    : a.sentiment === 'BEARISH' ? 'news-sentiment-bear'
+                    : 'news-sentiment-neu';
+                return `
+                    <div class="news-item">
+                        <a class="news-title" href="${a.url}" target="_blank">${a.title}</a>
+                        <div class="news-meta">
+                            <span class="news-source">${a.source}</span>
+                            <span class="${sentClass}">${a.sentiment}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (err) {
+            container.innerHTML = '<div style="color:#64748B; font-size:12px;">Could not load headlines.</div>';
         }
     }
 </script>
