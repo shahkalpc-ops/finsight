@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 import os
 import yfinance as yf
 import ta
 from database import init_db, save_prediction, get_predictions
 import time
-from google.genai import types
 
 load_dotenv()
 init_db()
@@ -17,7 +17,6 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 def gemini_with_retry(prompt, max_attempts=3):
     for attempt in range(max_attempts):
         try:
-            from google.genai import types
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
@@ -43,12 +42,12 @@ def home():
 def analyze_page():
     with open("templates/analyze.html") as f:
         return f.read()
-    
+
 @app.get("/watchlist.html", response_class=HTMLResponse)
 def watchlist_page():
     with open("templates/watchlist.html") as f:
-        return f.read()    
-    
+        return f.read()
+
 @app.get("/news/{ticker}")
 def get_news(ticker: str):
     stock = yf.Ticker(ticker)
@@ -59,29 +58,26 @@ def get_news(ticker: str):
 
     articles = []
     for item in news[:6]:
-        title = item.get("content", {}).get("title", "")
-        url = item.get("content", {}).get("canonicalUrl", {}).get("url", "")
-        source = item.get("content", {}).get("provider", {}).get("displayName", "")
-        
+        content = item.get("content", {})
+        title = content.get("title", "")
+        url = content.get("canonicalUrl", {}).get("url", "")
+        source = content.get("provider", {}).get("displayName", "")
+
         if not title:
             continue
 
-        articles.append({
-            "title": title,
-            "url": url,
-            "source": source
-        })
+        articles.append({"title": title, "url": url, "source": source})
 
     if not articles:
         return {"ticker": ticker, "articles": []}
 
     headlines = "\n".join([f"- {a['title']}" for a in articles])
-    prompt = f"""You are a financial analyst. For each headline below about {ticker} stock, classify it as BULLISH, BEARISH, or NEUTRAL for the stock price. 
-
-Headlines:
-{headlines}
-
-Respond with exactly one word per headline in the same order: BULLISH, BEARISH, or NEUTRAL. One per line, nothing else."""
+    prompt = (
+        f"You are a financial analyst. For each headline below about {ticker} stock, "
+        f"classify it as BULLISH, BEARISH, or NEUTRAL for the stock price.\n\n"
+        f"Headlines:\n{headlines}\n\n"
+        f"Respond with exactly one word per headline in the same order: BULLISH, BEARISH, or NEUTRAL. One per line, nothing else."
+    )
 
     try:
         sentiment_text = gemini_with_retry(prompt)
@@ -93,6 +89,69 @@ Respond with exactly one word per headline in the same order: BULLISH, BEARISH, 
         article["sentiment"] = sentiments[i] if i < len(sentiments) else "NEUTRAL"
 
     return {"ticker": ticker, "articles": articles}
+
+@app.get("/briefing")
+def get_briefing():
+    rows = get_predictions()
+    if not rows:
+        return {"briefing": None, "tickers": []}
+
+    tickers_data = []
+    for row in rows:
+        ticker = row[1]
+        direction = row[3]
+        price = row[4]
+        target = row[5]
+        confidence = row[6]
+        reasoning = row[8]
+
+        stock = yf.Ticker(ticker)
+        news_items = stock.news[:3]
+        headlines = []
+        for item in news_items:
+            title = item.get("content", {}).get("title", "")
+            if title:
+                headlines.append(title)
+
+        tickers_data.append({
+            "ticker": ticker,
+            "direction": direction,
+            "price": price,
+            "target": target,
+            "confidence": confidence,
+            "reasoning": reasoning,
+            "headlines": headlines
+        })
+
+    summary_parts = []
+    for t in tickers_data:
+        headlines_text = "\n".join([f"  - {h}" for h in t["headlines"]]) if t["headlines"] else "  - No recent headlines"
+        summary_parts.append(
+            f"{t['ticker']}: {t['direction']} call, entry ${t['price']}, target ${t['target']}, {t['confidence']}% confidence\n"
+            f"Reasoning: {t['reasoning']}\n"
+            f"Recent headlines:\n{headlines_text}\n"
+        )
+
+    all_summaries = "\n".join(summary_parts)
+    prompt = (
+        f"You are a personal financial research assistant writing a morning briefing for a young investor named Kalp.\n\n"
+        f"Here is his current watchlist with predictions and recent news:\n\n"
+        f"{all_summaries}\n\n"
+        f"Write a 2-3 paragraph morning briefing in a direct, intelligent, conversational tone.\n"
+        f"- Reference specific stocks, prices, and signals from the data above\n"
+        f"- Connect news sentiment to the technical signals where relevant\n"
+        f"- Flag anything worth watching or acting on today\n"
+        f"- Do not use bullet points - write flowing prose like a Bloomberg analyst note\n"
+        f"- Do not start with Good morning - start directly with the most important insight\n"
+        f"- Keep it under 200 words total"
+    )
+
+    briefing_text = gemini_with_retry(prompt)
+
+    return {
+        "briefing": briefing_text,
+        "tickers": [t["ticker"] for t in tickers_data]
+    }
 
 @app.get("/analyze/{ticker}")
 def analyze(ticker: str):
@@ -119,24 +178,22 @@ def analyze(ticker: str):
     macd_signal_text = "bullish" if macd_value > macd_signal else "bearish"
     ma_signal = "bullish" if price > ma200 else "bearish"
 
-    prompt = f"""
-    Analyze {name} ({ticker}) stock given these real current metrics:
-    - Current Price: ${price}
-    - 52 Week Change: {week_52_change}
-    - P/E Ratio: {pe_ratio}
-    - Volume: {volume}
-    - Market Cap: {market_cap}
-
-    Technical Indicators:
-    - RSI: {rsi:.2f} ({rsi_signal})
-    - MACD: {macd_value:.4f} vs Signal: {macd_signal:.4f} ({macd_signal_text})
-    - 50 Day MA: ${ma50:.2f}
-    - 200 Day MA: ${ma200:.2f} ({ma_signal} trend)
-
-    Give a concise analysis covering: what these signals mean together,
-    key risks, and an overall bullish/bearish/neutral rating with confidence level.
-    Be specific to these exact numbers.
-    """
+    prompt = (
+        f"Analyze {name} ({ticker}) stock given these real current metrics:\n"
+        f"- Current Price: ${price}\n"
+        f"- 52 Week Change: {week_52_change}\n"
+        f"- P/E Ratio: {pe_ratio}\n"
+        f"- Volume: {volume}\n"
+        f"- Market Cap: {market_cap}\n\n"
+        f"Technical Indicators:\n"
+        f"- RSI: {rsi:.2f} ({rsi_signal})\n"
+        f"- MACD: {macd_value:.4f} vs Signal: {macd_signal:.4f} ({macd_signal_text})\n"
+        f"- 50 Day MA: ${ma50:.2f}\n"
+        f"- 200 Day MA: ${ma200:.2f} ({ma_signal} trend)\n\n"
+        f"Give a concise analysis covering: what these signals mean together, "
+        f"key risks, and an overall bullish/bearish/neutral rating with confidence level. "
+        f"Be specific to these exact numbers."
+    )
 
     analysis_text = gemini_with_retry(prompt)
 
@@ -177,20 +234,19 @@ def generate_prediction(ticker: str):
     ma50 = history["Close"].rolling(window=50).mean().iloc[-1]
     ma200 = history["Close"].rolling(window=200).mean().iloc[-1]
 
-    prompt = f"""
-    You are a quantitative analyst. Based on these signals for {name} ({ticker}):
-    - Current Price: ${price}
-    - RSI: {rsi:.2f}
-    - MACD: {macd_value:.4f} vs Signal: {macd_signal_val:.4f}
-    - MA50: ${ma50:.2f}, MA200: ${ma200:.2f}
-
-    Generate a structured prediction. Respond in exactly this format, no extra text:
-    DIRECTION: [BULLISH or BEARISH or NEUTRAL]
-    TARGET_PRICE: [number only]
-    TIMEFRAME_DAYS: [number only, between 7 and 30]
-    CONFIDENCE: [number only, between 30 and 90]
-    REASONING: [2-3 sentences explaining the prediction based on the signals]
-    """
+    prompt = (
+        f"You are a quantitative analyst. Based on these signals for {name} ({ticker}):\n"
+        f"- Current Price: ${price}\n"
+        f"- RSI: {rsi:.2f}\n"
+        f"- MACD: {macd_value:.4f} vs Signal: {macd_signal_val:.4f}\n"
+        f"- MA50: ${ma50:.2f}, MA200: ${ma200:.2f}\n\n"
+        f"Generate a structured prediction. Respond in exactly this format, no extra text:\n"
+        f"DIRECTION: [BULLISH or BEARISH or NEUTRAL]\n"
+        f"TARGET_PRICE: [number only]\n"
+        f"TIMEFRAME_DAYS: [number only, between 7 and 30]\n"
+        f"CONFIDENCE: [number only, between 30 and 90]\n"
+        f"REASONING: [2-3 sentences explaining the prediction based on the signals]"
+    )
 
     response_text = gemini_with_retry(prompt)
 

@@ -407,53 +407,58 @@
 
     async function loadBriefing() {
         try {
-            const res = await fetch('/watchlist');
+            const res = await fetch('/briefing');
             const data = await res.json();
-            const predictions = data.predictions || [];
 
             const asideEl = document.getElementById('asideContent');
-            const holdingsTable = document.querySelector('#holdingsTable tbody');            const bodyEl = document.getElementById('briefingBody');
+            const bodyEl = document.getElementById('briefingBody');
+            const holdingsTable = document.querySelector('#holdingsTable tbody');
 
-            if (predictions.length === 0) {
+            if (!data.briefing) {
                 asideEl.innerHTML = '<div class="aside-row"><span>No active predictions</span></div>';
+                bodyEl.innerHTML = '<div class="briefing-para">Run an analysis and generate a prediction to start receiving your daily briefing.</div>';
                 return;
             }
 
-            asideEl.innerHTML = predictions.slice(0, 4).map(p => `
-                <div class="aside-row ${p === predictions[predictions.length-1] || predictions.indexOf(p) === 3 ? 'last' : ''}">
-                    <span>${p.ticker}</span>
-                    <span class="mono" style="color: ${p.direction === 'BULLISH' ? '#10B981' : p.direction === 'BEARISH' ? '#EF4444' : '#F59E0B'}">${p.direction.charAt(0)}${p.direction.slice(1).toLowerCase()}</span>
+            asideEl.innerHTML = data.tickers.map(t => `
+                <div class="aside-row">
+                    <span>${t}</span>
+                    <span style="color:#F59E0B; font-size:11px; cursor:pointer;" onclick="window.location.href='/analyze.html?ticker=${t}'">Analyze</span>
                 </div>
             `).join('');
+
+            const paragraphs = data.briefing.split('\n\n').filter(p => p.trim());
+            bodyEl.innerHTML = paragraphs.map(p =>
+                `<div class="briefing-para">${p.trim()}</div>`
+            ).join('');
+
+            const watchlistRes = await fetch('/watchlist');
+            const watchlistData = await watchlistRes.json();
+            const predictions = watchlistData.predictions || [];
+
+            if (predictions.length === 0) {
+                holdingsTable.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748B; padding:16px 0;">No predictions tracked yet</td></tr>';
+                return;
+            }
 
             holdingsTable.innerHTML = predictions.slice(0, 5).map(p => {
                 const note = p.direction === 'BULLISH'
                     ? `Targeting $${p.target_price} within ${p.timeframe_days}d`
                     : p.direction === 'BEARISH'
                     ? `Watching for downside to $${p.target_price}`
-                    : `Holding steady, no strong signal`;
+                    : `Holding steady, consolidation expected`;
                 return `
                     <tr>
                         <td class="ticker-cell">${p.ticker}</td>
-                        <td class="price-cell mono" style="padding-right: 24px;">$${p.price_at_prediction}</td>
-                        <td class="change-cell mono ${p.direction === 'BULLISH' ? 'positive' : p.direction === 'BEARISH' ? 'negative' : ''}" style="padding-right: 24px;">${p.confidence}% conf</td>
+                        <td class="price-cell mono" style="padding-right:24px;">$${p.price_at_prediction}</td>
+                        <td class="change-cell mono ${p.direction === 'BULLISH' ? 'positive' : p.direction === 'BEARISH' ? 'negative' : ''}" style="padding-right:24px;">${p.confidence}% conf</td>
                         <td class="note-cell">${note}</td>
                     </tr>
                 `;
             }).join('');
 
-            const topPick = predictions[0];
-            bodyEl.innerHTML = `
-                <div class="briefing-para">
-                    Your most recent tracked call was on <span class="ticker-name">${topPick.company_name || topPick.ticker}</span>, called <span class="data">${topPick.direction.toLowerCase()}</span> with a target of <span class="data">$${topPick.target_price}</span> over <span class="data">${topPick.timeframe_days} days</span>. ${topPick.reasoning}
-                </div>
-                <div class="briefing-para">
-                    You're currently tracking <span class="data">${predictions.length}</span> prediction${predictions.length === 1 ? '' : 's'} on your watchlist. Run a new analysis below to add another, or check the watchlist page to review how previous calls have played out.
-                </div>
-            `;
-
         } catch (err) {
-            document.getElementById('statusLine').textContent = 'Could not load watchlist data.';
+            document.getElementById('statusLine').textContent = 'Could not load briefing.';
             document.getElementById('statusLine').className = 'status-line error';
         }
     }
