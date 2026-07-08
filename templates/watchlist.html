@@ -280,6 +280,25 @@
 </head>
 <body>
 
+<div id="wakeScreen" style="
+    display: flex;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #050507;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+">
+    <div style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; color: #F59E0B; margin-bottom: 12px;">FinSight</div>
+    <div style="font-family: 'Inter', sans-serif; font-size: 13px; color: #64748B; margin-bottom: 32px; letter-spacing: 0.5px;">Waking up the server — this takes about 30 seconds</div>
+    <div style="width: 200px; height: 2px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden;">
+        <div id="wakeBar" style="height: 2px; background: #F59E0B; width: 0%; transition: width 0.5s ease;"></div>
+    </div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #3F4554; margin-top: 12px; letter-spacing: 1px;" id="wakeStatus">Connecting...</div>
+</div>
+
 <div class="app-grid">
 
     <div class="nav-rail">
@@ -410,6 +429,36 @@
     }
 
     loadWatchlist();
+
+    async function checkServerAwake() {
+        const screen = document.getElementById('wakeScreen');
+        const bar = document.getElementById('wakeBar');
+        const status = document.getElementById('wakeStatus');
+
+        let progress = 0;
+
+        const interval = setInterval(() => {
+            progress = Math.min(progress + 2, 90);
+            bar.style.width = progress + '%';
+        }, 600);
+
+        try {
+            await fetch('/health');
+            clearInterval(interval);
+            bar.style.width = '100%';
+            status.textContent = 'Ready.';
+            setTimeout(() => {
+                screen.style.opacity = '0';
+                screen.style.transition = 'opacity 0.4s ease';
+                setTimeout(() => screen.style.display = 'none', 400);
+            }, 300);
+        } catch (err) {
+            clearInterval(interval);
+            status.textContent = 'Could not connect. Try refreshing.';
+        }
+    }
+
+    checkServerAwake();    
 </script>
 
 </body>

@@ -33,6 +33,10 @@ def gemini_with_retry(prompt, max_attempts=3):
 
 app = FastAPI()
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 @app.get("/", response_class=HTMLResponse)
 def home():
     with open("templates/index.html") as f:
