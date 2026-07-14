@@ -276,6 +276,98 @@
             text-transform: none;
             letter-spacing: 0.5px;
         }
+
+        @media (max-width: 768px) {
+            .app-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-rail {
+                display: none;
+            }
+
+            .content-wrapper {
+                width: 100%;
+            }
+
+            .main {
+                padding: 24px 16px;
+                max-width: 100%;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .watchlist-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .footer {
+                margin-left: 0;
+                flex-direction: column;
+                gap: 6px;
+                padding: 12px 16px;
+            }
+        }
+        .mobile-nav {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: #0E1015;
+                border-top: 1px solid rgba(255,255,255,0.07);
+                z-index: 1000;
+                padding: 8px 0 12px;
+            }
+
+            .mobile-nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                cursor: pointer;
+                padding: 4px 0;
+            }
+
+            .mobile-nav-icon {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 13px;
+                font-weight: 500;
+                color: #64748B;
+            }
+
+            .mobile-nav-label {
+                font-size: 9px;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                color: #64748B;
+            }
+
+            .mobile-nav-item:hover .mobile-nav-icon,
+            .mobile-nav-item:hover .mobile-nav-label {
+                color: #F59E0B;
+            }
+
+            body {
+                padding-bottom: 70px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -461,5 +553,23 @@
     checkServerAwake();    
 </script>
 
+    <div class="mobile-nav">
+        <div class="mobile-nav-item" onclick="window.location.href='/'">
+            <span class="mobile-nav-icon">N</span>
+            <span class="mobile-nav-label">Briefing</span>
+        </div>
+        <div class="mobile-nav-item" onclick="window.location.href='/analyze.html'">
+            <span class="mobile-nav-icon">A</span>
+            <span class="mobile-nav-label">Analysis</span>
+        </div>
+        <div class="mobile-nav-item" onclick="window.location.href='/watchlist.html'">
+            <span class="mobile-nav-icon">W</span>
+            <span class="mobile-nav-label">Watchlist</span>
+        </div>
+        <div class="mobile-nav-item" onclick="window.location.href='/analyze.html'">
+            <span class="mobile-nav-icon">P</span>
+            <span class="mobile-nav-label">Portfolio</span>
+        </div>
+    </div>
 </body>
 </html>
